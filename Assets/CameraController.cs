@@ -24,19 +24,19 @@ public class CameraController : MonoBehaviour
 
         if (Input.GetKey(KeyCode.W))
         {
-            this.transform.position += Vector3.forward;
+            this.transform.position += Vector3.forward * 0.1f;
         }
         if (Input.GetKey(KeyCode.A))
         {
-            this.transform.position += Vector3.left;
+            this.transform.position += Vector3.left * 0.1f;
         }
         if (Input.GetKey(KeyCode.S))
         {
-            this.transform.position += Vector3.back;
+            this.transform.position += Vector3.back * 0.1f;
         }
         if (Input.GetKey(KeyCode.D))
         {
-            this.transform.position += Vector3.right;
+            this.transform.position += Vector3.right * 0.1f;
         }
     }
 
