@@ -44,7 +44,7 @@ public class DetectWalls : MonoBehaviour
         if (hit.collider != null)
         {
             //Debug.Log($"Hit: {hit.collider.name}");
-            Debug.DrawRay(ray.origin, ray.direction * fieldOfVisionDistance, Color.red, 3f);
+            //Debug.DrawRay(ray.origin, ray.direction * fieldOfVisionDistance, Color.red, 3f);
 
             if (hit.collider.gameObject.tag == "Wall")
             {
@@ -57,7 +57,7 @@ public class DetectWalls : MonoBehaviour
         }
         else
         {
-            Debug.DrawRay(ray.origin, ray.direction * fieldOfVisionDistance, Color.green, 3f);
+            //Debug.DrawRay(ray.origin, ray.direction * fieldOfVisionDistance, Color.green, 3f);
             return false;
         }
     }
@@ -88,7 +88,7 @@ public class DetectWalls : MonoBehaviour
         if (hit.collider != null)
         {
             //Debug.Log($"Hit: {hit.collider.name}");
-            Debug.DrawRay(ray.origin, ray.direction * fieldOfVisionDistance, Color.red, 3f);
+            //Debug.DrawRay(ray.origin, ray.direction * fieldOfVisionDistance, Color.red, 3f);
 
             if (hit.collider.gameObject.tag == "Wall")
             {
@@ -101,7 +101,7 @@ public class DetectWalls : MonoBehaviour
         }
         else
         {
-            Debug.DrawRay(ray.origin, ray.direction * fieldOfVisionDistance, Color.green, 3f);
+            //Debug.DrawRay(ray.origin, ray.direction * fieldOfVisionDistance, Color.green, 3f);
             return false;
         }
     }

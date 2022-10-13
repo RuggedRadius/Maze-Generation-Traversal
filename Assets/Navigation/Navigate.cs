@@ -28,6 +28,7 @@ public class Navigate : MonoBehaviour
     public bool isInitialised;
     public bool isNavigating;
     public bool isRetracing;
+    public bool isTravellingDuringRetrace;
     public bool isIdle;
 
     public MazeCell currentCell;
@@ -139,7 +140,7 @@ public class Navigate : MonoBehaviour
                     break;
             }
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.1f);
         }
     }
 
@@ -154,7 +155,15 @@ public class Navigate : MonoBehaviour
         {
             // Move to last decision point cell
             MazeCell lastUnexploredDecisionPoint = decisionPointCells[decisionPointCells.Count - 1];
-            transform.position = lastUnexploredDecisionPoint.cellObject.transform.position;
+
+            isTravellingDuringRetrace = true;
+            StartCoroutine(TravelBackToDecisionPoint(lastUnexploredDecisionPoint));
+            while (isTravellingDuringRetrace)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            //transform.position = lastUnexploredDecisionPoint.cellObject.transform.position;
 
             // Update cell position
             UpdateCellPosition();
@@ -186,10 +195,36 @@ public class Navigate : MonoBehaviour
         yield return null;
     }
 
-    //private IEnumerator TravelBackToDecisionPoint(MazeCell cell)
-    //{
+    private IEnumerator TravelBackToDecisionPoint(MazeCell cell)
+    {
+        // Get list of cells
+        List<MazeCell> cells = pathsToDecisionPoints[cell];
 
-    //}
+        // Travel through list
+        while (currentCell != cell)
+        {
+            // Target next cell to move to
+            MazeCell nextTargetCell = cells[cells.Count - 1];
+
+            // Move to cell
+            move.RotateNavigator(currentCell, nextTargetCell);
+            StartCoroutine(move.MoveToCell(nextTargetCell));
+
+            // Wait for move to complete
+            while (move.isMoving)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            // Update cell position
+            UpdateCellPosition();
+
+            // Remove cell from list
+            cells.Remove(nextTargetCell);
+        }
+
+        isTravellingDuringRetrace = false;
+    }
 
     private IEnumerator Nav()
     {
@@ -252,6 +287,9 @@ public class Navigate : MonoBehaviour
                     move.RotateNavigator(currentCell, nextCell);
                     StartCoroutine(move.MoveToCell(nextCell));
 
+                    // Add cell to retrace path
+                    pathsToDecisionPoints[lastDecisionPoint].Add(nextCell);
+
                     // Increment move counter
                     moveCounter++;
                 }
@@ -301,58 +339,6 @@ public class Navigate : MonoBehaviour
             return mazeGenerator.mazeData[0, 0];
         }
     }
-
-    //private LookDirection ChooseRandomPathOption()
-    //{
-    //    List<LookDirection> possibleDirections = new List<LookDirection> { LookDirection.Left, LookDirection.Forward, LookDirection.Right };
-
-    //    // Detect walls
-    //    bool wallPresentOnLeft = detectWalls.DetectWallInDirection(LookDirection.Left);
-    //    bool wallPresentOnFront = detectWalls.DetectWallInDirection(LookDirection.Forward);
-    //    bool wallPresentOnRight = detectWalls.DetectWallInDirection(LookDirection.Right);
-
-    //    // Remove directions with walls
-    //    if (wallPresentOnLeft)
-    //        possibleDirections.Remove(LookDirection.Left);
-    //    if (wallPresentOnFront)
-    //        possibleDirections.Remove(LookDirection.Forward);
-    //    if (wallPresentOnRight)
-    //        possibleDirections.Remove(LookDirection.Right);
-
-    //    bool suitableCellFound = false;
-    //    MazeCell nextCell = null;
-    //    LookDirection returnVal = LookDirection.Left;
-    //    int retryCount = 1000;
-    //    while (!suitableCellFound)
-    //    {
-    //        // Get random index
-    //        int index = Random.Range(0, possibleDirections.Count);
-    //        var randomDirection = possibleDirections[index];
-
-    //        nextCell = GetRelativeNeighbourCell(randomDirection);
-
-    //        if (nextCell != null && nextCell.cellState != CellState.Explored)
-    //        {
-    //            returnVal = randomDirection;
-    //            suitableCellFound = true;
-    //        }
-
-    //        retryCount--;
-
-    //        if (retryCount <= 0)
-    //        {
-    //            Debug.Log("ERROR: Not finding suitable cell!");
-    //            suitableCellFound = true;
-    //        }
-    //    }
-
-    //    // Determine decision point
-    //    if (possibleDirections.Count > 1)
-    //        currentCell.isDecisionPoint = true;
-
-    //    return returnVal;
-    //}
-
     private MazeCell GetNeighbourCellAbsoluteByDirection(FacingDirection facingDirection)
     {
         try
@@ -371,172 +357,6 @@ public class Navigate : MonoBehaviour
             return currentCell;
         }
     }
-
-    //private MazeCell GetRelativeNeighbourCell(LookDirection lookDirection)
-    //{
-    //    int deltaX = 0;
-    //    int deltaY = 0;
-
-    //    switch (facingDirection)
-    //    {
-    //        case FacingDirection.North:
-    //            switch (lookDirection)
-    //            {
-    //                case LookDirection.Left:
-    //                    deltaX = -1;
-    //                    break;
-
-    //                case LookDirection.Right:
-    //                    deltaX = 1;
-    //                    break;
-
-    //                case LookDirection.Forward:
-    //                    deltaY = 1;
-    //                    break;
-
-    //                case LookDirection.Backward:
-    //                    deltaY = -1;
-    //                    break;
-    //            }
-    //            break;
-
-    //        case FacingDirection.East:
-    //            switch (lookDirection)
-    //            {
-    //                case LookDirection.Left:
-    //                    deltaY = 1;
-    //                    break;
-
-    //                case LookDirection.Right:
-    //                    deltaY = -1;
-    //                    break;
-
-    //                case LookDirection.Forward:
-    //                    deltaX = 1;
-    //                    break;
-
-    //                case LookDirection.Backward:
-    //                    deltaX = -1;
-    //                    break;
-    //            }
-    //            break;
-
-    //        case FacingDirection.South:
-    //            switch (lookDirection)
-    //            {
-    //                case LookDirection.Left:
-    //                    deltaX = 1;
-    //                    break;
-
-    //                case LookDirection.Right:
-    //                    deltaX = -1;
-    //                    break;
-
-    //                case LookDirection.Forward:
-    //                    deltaY = -1;
-    //                    break;
-
-    //                case LookDirection.Backward:
-    //                    deltaY = 1;
-    //                    break;
-    //            }
-    //            break;
-
-    //        case FacingDirection.West:
-    //            switch (lookDirection)
-    //            {
-    //                case LookDirection.Left:
-    //                    deltaY = -1;
-    //                    break;
-
-    //                case LookDirection.Right:
-    //                    deltaY = 1;
-    //                    break;
-
-    //                case LookDirection.Forward:
-    //                    deltaX = -1;
-    //                    break;
-
-    //                case LookDirection.Backward:
-    //                    deltaX = 1;
-    //                    break;
-    //            }
-    //            break;
-    //    }
-
-    //    MazeCell targetCell = null;
-    //    try
-    //    {
-    //        targetCell = mazeGenerator.mazeData[currentCellPos.x + deltaX, currentCellPos.y + deltaY];
-    //    }
-    //    catch (System.Exception) {}
-
-    //    return targetCell;
-    //}
-
-    //public List<MazeCell> GetPossibleNextCells()
-    //{
-    //    List<MazeCell> cells = new List<MazeCell>();
-
-    //    bool[] isWallsPresent =
-    //    {
-    //        detectWalls.DetectWallInAbsoluteDirection(FacingDirection.North),
-    //        detectWalls.DetectWallInAbsoluteDirection(FacingDirection.East),
-    //        detectWalls.DetectWallInAbsoluteDirection(FacingDirection.South),
-    //        detectWalls.DetectWallInAbsoluteDirection(FacingDirection.West)
-    //    };
-
-    //    MazeCell[] possibleCells =
-    //    {
-    //        GetNeighbourCellAbsoluteByDirection(FacingDirection.North),
-    //        GetNeighbourCellAbsoluteByDirection(FacingDirection.East),
-    //        GetNeighbourCellAbsoluteByDirection(FacingDirection.South),
-    //        GetNeighbourCellAbsoluteByDirection(FacingDirection.West)
-    //    };
-
-    //    for (int i = 0; i < possibleCells.Length; i++)
-    //    {
-    //        if (!isWallsPresent[i] && possibleCells[i] != currentCell)
-    //        {
-    //            if (possibleCells[i].cellState != CellState.Explored)
-    //            {
-    //                cells.Add(possibleCells[i]);
-    //            }
-    //        }
-    //    }
-
-    //    return cells;
-    //}
-
-    //private bool[] IsWallsPresent()
-    //{
-    //    bool left = detectWalls.DetectWallInDirection(LookDirection.Left);
-    //    bool front = detectWalls.DetectWallInDirection(LookDirection.Forward);
-    //    bool right = detectWalls.DetectWallInDirection(LookDirection.Right);
-
-    //    return new bool[] { left, front, right };
-    //}
-
-    //public Vector3 GetNextPosition(LookDirection lookDir)
-    //{
-    //    switch (lookDir)
-    //    {
-    //        case LookDirection.Left: 
-    //            return transform.position + -transform.right;
-
-    //        case LookDirection.Right: 
-    //            return transform.position + transform.right;
-
-    //        case LookDirection.Forward: 
-    //            return transform.position + transform.forward; 
-
-    //        case LookDirection.Backward: 
-    //            return transform.position + -transform.forward;
-    //    }
-
-    //    return Vector3.zero;
-    //}
-
     void VisitCell(MazeCell cell)
     {
         // Record visit
@@ -576,6 +396,8 @@ public class Navigate : MonoBehaviour
                 {
                     cell.cellState = CellState.DecisionPoint;
                     decisionPointCells.Add(cell);
+                    pathsToDecisionPoints.Add(cell, new List<MazeCell>());
+                    pathsToDecisionPoints[cell].Add(cell);
                     lastDecisionPoint = cell;
                 }
                 else
@@ -594,7 +416,19 @@ public class Navigate : MonoBehaviour
                     {
                         cell.cellState = CellState.DecisionPoint;
                         decisionPointCells.Add(cell);
+
                         lastDecisionPoint = cell;
+
+                        try
+                        {
+                            pathsToDecisionPoints.Add(cell, new List<MazeCell>());
+                        }
+                        catch (System.Exception)
+                        {
+                            Debug.LogWarning("Mazecell already exists in retrace dictionary");
+                        }
+
+                        pathsToDecisionPoints[cell].Add(cell);
                     }
                 }              
                 break;
@@ -625,7 +459,4 @@ public class Navigate : MonoBehaviour
 
         cell.cellDetectorObject.GetComponent<MeshRenderer>().material = cellMat;
     }
-
-
-
 }
