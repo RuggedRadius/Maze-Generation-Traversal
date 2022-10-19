@@ -16,7 +16,7 @@ public class Navigate : MonoBehaviour
 
     private MazeGenerator mazeGenerator;
     private MazeBuilder mazeBuilder;
-    private Movement move;
+    public Movement move;
     private DetectWalls detectWalls;
 
     public bool startedMaze;
@@ -45,12 +45,15 @@ public class Navigate : MonoBehaviour
     private MazeCell lastDecisionPoint;
     private Dictionary<MazeCell, List<MazeCell>> pathsToDecisionPoints;
 
+    private Stopwatch stopWatch;
+
     private void Awake()
     {
         mazeGenerator = GameObject.FindGameObjectWithTag("MazeGenerator").GetComponent<MazeGenerator>();
         mazeBuilder = mazeGenerator.GetComponent<MazeBuilder>();
         move = this.GetComponent<Movement>();
         detectWalls = this.GetComponent<DetectWalls>();
+        stopWatch = GameObject.FindGameObjectWithTag("Stopwatch").GetComponent<Stopwatch>();
 
         decisionPointCells = new List<MazeCell>();
         pathsToDecisionPoints = new Dictionary<MazeCell, List<MazeCell>>();
@@ -58,7 +61,12 @@ public class Navigate : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(InitialiseNavigator());       
+        //Initialise();
+    }
+
+    public void Initialise()
+    {
+        StartCoroutine(InitialiseNavigator());
     }
 
     private IEnumerator InitialiseNavigator()
@@ -88,13 +96,19 @@ public class Navigate : MonoBehaviour
         currentCellPos = Vector2Int.zero;
 
         UpdateCellPosition();
-        VisitCell(currentCell);
-
-        isInitialised = true;
+        VisitCell(currentCell);        
 
         yield return new WaitForSeconds(1f);
 
+        stopWatch.ResetStopwatch();
+        stopWatch.StartStopwatch();
+
+        move.isMoving = false;
+        isTravellingDuringRetrace = false;
+
         StartCoroutine(TraverseMaze());
+
+        isInitialised = true;
     }
 
     private void PositionNavigatorAtStartOfMaze()
@@ -140,7 +154,7 @@ public class Navigate : MonoBehaviour
                     break;
             }
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds (0.1f);
         }
     }
 
@@ -204,15 +218,44 @@ public class Navigate : MonoBehaviour
         while (currentCell != cell)
         {
             // Target next cell to move to
-            MazeCell nextTargetCell = cells[cells.Count - 1];
+            MazeCell nextTargetCell = null;
+            try
+            {
+                nextTargetCell = cells[cells.Count - 1];
+            }
+            catch (System.Exception)
+            {
+                yield break;
+            }
 
             // Move to cell
             move.RotateNavigator(currentCell, nextTargetCell);
+            float timerRotation = 0f;
+            while (move.isRotating)
+            {
+                timerRotation += 0.1f;
+
+                if (timerRotation > move.movementDuration + 0.1f)
+                {
+                    move.isRotating = false;
+                }
+
+                yield return new WaitForSeconds(0.1f);
+            }
+
             StartCoroutine(move.MoveToCell(nextTargetCell));
 
             // Wait for move to complete
+            float timer = 0f;
             while (move.isMoving)
             {
+                timer += 0.1f;
+
+                if (timer > move.movementDuration + 0.1f)
+                {
+                    move.isMoving = false;
+                }
+
                 yield return new WaitForSeconds(0.1f);
             }
 
@@ -233,8 +276,16 @@ public class Navigate : MonoBehaviour
         while (state == NavigationState.Navigating)
         {
             // Wait for movement to stop
+            float timer = 0f;
             while (move.isMoving)
             {
+                timer += 0.1f;
+
+                if (timer > move.movementDuration + 0.1f)
+                {
+                    move.isMoving = false;
+                }
+
                 yield return new WaitForSeconds(0.1f);
             }
 
@@ -309,6 +360,8 @@ public class Navigate : MonoBehaviour
             currentCellPos.y == (mazeGenerator.mazeSize.y -1 ))
         {
             // Maze solved
+            stopWatch.StopStopwatch();
+
             Debug.Log("MAZE SOLVED!");
             state = NavigationState.Idle;
             finishedMaze = true;
@@ -396,7 +449,14 @@ public class Navigate : MonoBehaviour
                 {
                     cell.cellState = CellState.DecisionPoint;
                     decisionPointCells.Add(cell);
-                    pathsToDecisionPoints.Add(cell, new List<MazeCell>());
+                    try
+                    {
+                        pathsToDecisionPoints.Add(cell, new List<MazeCell>());
+                    }
+                    catch (System.Exception)
+                    {
+                        Debug.LogWarning("Mazecell already exists in retrace dictionary");
+                    }
                     pathsToDecisionPoints[cell].Add(cell);
                     lastDecisionPoint = cell;
                 }

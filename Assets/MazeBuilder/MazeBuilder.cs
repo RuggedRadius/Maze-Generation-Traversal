@@ -26,7 +26,7 @@ public class MazeBuilder : MonoBehaviour
     public Material matCurrentPos;
     public Material matDecisionPoint;
 
-    private GameObject mazeParent;
+    public GameObject mazeParent;
     private MazeGenerator mazeGen;
     private CellLinker cellLinker;
 
@@ -55,6 +55,7 @@ public class MazeBuilder : MonoBehaviour
                 GameObject cellObject = new GameObject($"Cell_[{xPos}, {yPos}]");
                 cellObject.transform.SetParent(mazeParent.transform);
                 cell.cellObject = cellObject;
+                cellCount++;
 
                 // Position cell
                 cellObject.transform.localPosition = new Vector3(xPos, 0, yPos);
@@ -156,7 +157,6 @@ public class MazeBuilder : MonoBehaviour
         wallObject.tag = "Wall";
 
         wall.wallObject = wallObject;
-
         wall.hasBeenBuilt = true;
     }
 

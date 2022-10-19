@@ -6,6 +6,10 @@ TagManager:
   tags:
   - MazeGenerator
   - Wall
+  - MazeSizeWidthInput
+  - MazeSizeHeightInput
+  - Stopwatch
+  - StopwatchUI
   layers:
   - Default
   - TransparentFX

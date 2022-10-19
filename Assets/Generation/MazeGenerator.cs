@@ -1,19 +1,18 @@
 using Assets;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class MazeGenerator : MonoBehaviour
 {
     public Vector2Int mazeSize;
 
-    public int cellCount;
-    public int wallCount;    
-
     public MazeCell[,] mazeData;
 
     private MazeBuilder builder;
     private CellLinker cellLinker;
+    private Navigate nav;
 
     public bool mazeGenerated;
 
@@ -21,13 +20,32 @@ public class MazeGenerator : MonoBehaviour
     {
         builder = GetComponent<MazeBuilder>();
         cellLinker = GetComponent<CellLinker>();
+        nav = GameObject.FindGameObjectWithTag("Player").GetComponent<Navigate>();
+    }
 
+    public void GenerateMaze(Vector2Int size)
+    {
+        mazeSize = size;
         StartCoroutine(GenMazeComplete());
     }
 
     private IEnumerator GenMazeComplete()
     {
         mazeGenerated = false;
+
+        if (nav.visitedCells != null)
+            nav.visitedCells.Clear();
+        nav.visitedCells = new List<MazeCell>();
+        builder.cellCount = 0;
+
+        // Delete existing maze, if any        
+        while (nav.move.isMoving || nav.isTravellingDuringRetrace)
+        {
+            yield return null;
+        }
+        nav.state = NavigationState.Idle;
+        Destroy(builder.mazeParent);
+
 
         Debug.Log("Generating maze grid...");
         GenerateMazeGrid(mazeSize);
@@ -45,6 +63,9 @@ public class MazeGenerator : MonoBehaviour
         mazeGenerated = true;
 
         yield return null;
+
+        // Start navigation
+        nav.Initialise();
     }
 
     public void SetMazeEntrance(bool active)
