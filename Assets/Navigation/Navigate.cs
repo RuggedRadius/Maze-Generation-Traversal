@@ -129,7 +129,7 @@ public class Navigate : MonoBehaviour
 
         while (startedMaze && !finishedMaze)
         {            
-            Debug.Log($"State: {state}");
+            //Debug.Log($"State: {state}");
 
             switch (state)
             {

@@ -16,7 +16,7 @@ public class MazeGenerator : MonoBehaviour
 
     public bool mazeGenerated;
 
-    void Start()
+    void Awake()
     {
         builder = GetComponent<MazeBuilder>();
         cellLinker = GetComponent<CellLinker>();
