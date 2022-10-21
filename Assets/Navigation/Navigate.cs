@@ -177,8 +177,6 @@ public class Navigate : MonoBehaviour
                 yield return new WaitForSeconds(0.1f);
             }
 
-            //transform.position = lastUnexploredDecisionPoint.cellObject.transform.position;
-
             // Update cell position
             UpdateCellPosition();
 

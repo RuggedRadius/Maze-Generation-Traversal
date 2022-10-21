@@ -113,8 +113,43 @@ public class Movement : MonoBehaviour
         yield return null;
     }
 
-    public IEnumerator RotateInDirection(FacingDirection direction)
+    public IEnumerator RotateInDirection(LookDirection direction)
     {
+        isRotating = true;
+
+        Vector3 startRotation = this.transform.eulerAngles;
+        Vector3 endRotation = Vector3.zero;
+
+        switch (direction)
+        {
+            case LookDirection.Left:
+                endRotation = startRotation + new Vector3(0f, -90f, 0f);
+                break;
+
+            case LookDirection.Right:
+                endRotation = startRotation + new Vector3(0f, 90f, 0f);
+                break;
+
+            case LookDirection.Backward:
+                endRotation = startRotation + new Vector3(0f, -180f, 0f);
+                break;
+
+            case LookDirection.Forward:
+                break;
+        }
+
+        float timer = 0f;
+        while (transform.eulerAngles != endRotation)
+        {
+            timer += Time.deltaTime;
+
+            this.transform.eulerAngles = Vector3.Lerp(startRotation, endRotation, timer / movementDuration);
+
+            yield return null;
+        }
+
+        isRotating = false;
+
         yield return null;
     }    
 }

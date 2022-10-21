@@ -21,8 +21,9 @@ public class CameraController : MonoBehaviour
     {
         if (followNavigator)
         {
-            this.transform.position = CalculateFollowPosition();
-            this.transform.position -= Vector3.up * Input.mouseScrollDelta.y * zoomSensitivity;
+            Vector3 camPos = CalculateFollowPosition();
+            camPos.y -= Input.mouseScrollDelta.y * zoomSensitivity;
+            this.transform.position = camPos;
 
             this.transform.eulerAngles = new Vector3(84f, 0f, 0f);
         }
@@ -72,7 +73,7 @@ public class CameraController : MonoBehaviour
     private Vector3 CalculateFollowPosition()
     {
         float x = target.transform.position.x;
-        float y = target.transform.position.y + cameraHeight;
+        float y = this.transform.position.y;
         float z = target.transform.position.z;
 
         y = Mathf.Clamp(y, 1, 100);

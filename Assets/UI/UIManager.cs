@@ -105,4 +105,9 @@ public class UIManager : MonoBehaviour
             // Cry
         }
     }
+
+    public void QuitProgram()
+    {
+        Application.Quit();
+    }
 }
